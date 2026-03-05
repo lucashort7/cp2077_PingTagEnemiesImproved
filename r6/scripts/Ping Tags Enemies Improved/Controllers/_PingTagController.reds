@@ -2,16 +2,6 @@
 import PingTagEnemiesImproved.*
 
 
-@wrapMethod(NPCPuppet)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
-  FTLog(
-    "\'------------------- [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnRevealStateChanged() Triggered!"
-  );
-  return wrappedMethod(evt);
-}
-
-
-
 @wrapMethod(ScanningComponent)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
   FTLog(
