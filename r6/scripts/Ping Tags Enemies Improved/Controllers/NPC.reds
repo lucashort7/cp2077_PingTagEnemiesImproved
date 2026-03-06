@@ -9,22 +9,22 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Boo
   let isValidReason = Equals(evt.reason.reason, n"network") || Equals(evt.reason.reason, n"PingQuickhack");
   let isTagged = this.IsTaggedinFocusMode();      // untag if already tagged
 
-  FTLog("\n=================================================");
-  FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnRevealStateChanged() Triggered!");
-  FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> evt.reason:  \(evt.reason.sourceEntityId) - \(evt.reason.reason)");
-  FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> evt.state:  \(evt.state)");
-  FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.PersistentID:  \(this.GetPersistentID())");
-  FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.Name:  \(this.GetDisplayName()) - \(this.GetDisplayDescription())");
-  FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.IsDead:  \(this.IsDead())");
+  // FTLog("\n=================================================");
+  // FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnRevealStateChanged() Triggered!");
+  // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> evt.reason:  \(evt.reason.sourceEntityId) - \(evt.reason.reason)");
+  // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> evt.state:  \(evt.state)");
+  // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.PersistentID:  \(this.GetPersistentID())");
+  // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.Name:  \(this.GetDisplayName()) - \(this.GetDisplayDescription())");
+  // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.IsDead:  \(this.IsDead())");
 
   if isRevealStart && isValidReason && !isTagged { 
     GameObject.TagObject(this);
-    FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> \(this.GetPersistentID()) was tagged!");
+    FTLog(s"'---------~ [PTagImpv] [DEBUG] >> \(this.GetPersistentID()) was tagged!");
   } else {
-    FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> \(this.GetPersistentID()) not valid for tagging!!!!");
+    FTLog(s"'---------~ [PTagImpv] [DEBUG] >> \(this.GetPersistentID()) not valid for tagging!!!!");
   }
 
-  FTLog("=================================================\n");
+  // FTLog("=================================================\n");
 
   return state;
 }
@@ -36,17 +36,17 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Boo
 protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   wrappedMethod(evt);
 
-  FTLog("\n=================================================");
-  FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnDeath() Triggered!");
+  // FTLog("\n=================================================");
+  // FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnDeath() Triggered!");
   
   if this.IsTaggedinFocusMode(){ 
     GameObject.UntagObject(this); 
-    FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnDeath() UntagObject - Tag clear post death!!");
+    FTLog(s"'---------~ [PTagImpv] [DEBUG] >> NPCPuppet::OnDeath() (\(this.GetPersistentID())) Tag cleared post death!!");
   }
   else {
-    FTLog("'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet::OnDeath() Was Not tagged; :X");
+    FTLog(s"'---------~ [PTagImpv] [DEBUG] >> NPCPuppet::OnDeath() (\(this.GetPersistentID())) Was Not tagged; :X");
   }; 
   
-  FTLog("=================================================\n");
+  // FTLog("=================================================\n");
 }
 
