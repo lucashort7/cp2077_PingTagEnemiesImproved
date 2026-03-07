@@ -106,3 +106,27 @@
 //   // }
 // }
 
+
+// // TESTING!!!!!!
+// @wrapMethod(SharedGameplayPS)
+// public const func SetRevealedInNetworkPing(wasRevealed: Bool) -> Void {
+//   wrappedMethod(wasRevealed);
+//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> SharedGameplayPS::SetRevealedInNetworkPing() Triggered!!!");
+//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> psID: \(this.GetID())");
+//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> clsName: \(this.GetClassName())");
+// }
+
+
+// @wrapMethod(ScriptableDeviceComponentPS)
+// private func PingSquad() -> Void {
+//   wrappedMethod();
+//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> ScriptableDeviceComponentPS::PingSquad() Triggered!!!");
+//   let evt: ref<ForwardPingToSquadEvent>;
+//   let aps: array<ref<AccessPointControllerPS>> = this.GetAccessPoints();
+//   let i: Int32 = 0;
+//   while i < ArraySize(aps) {
+//     evt = new ForwardPingToSquadEvent();
+//     FTLog(s"'---------~ [PTagImpv] [DEBUG] >> ap[\(i)]: \(aps[i]); evt: \(evt)");
+//     i += 1;
+//   };
+// }

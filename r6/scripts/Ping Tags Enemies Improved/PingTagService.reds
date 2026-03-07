@@ -3,23 +3,58 @@ module PingTagEnemiesImproved
 import PingTagEnemiesImproved.Handlers.ModSettings.{PingTagSettings}
 
 
-public class PingTagService extends ScriptableService {
-  public let pti: ref<PingTagSettings>;
+public class PTagSS extends ScriptableSystem {
+  public let settings: ref<PingTagSettings>;
+  public let player: ref<PlayerPuppet>;
 
-  private cb func OnLoad() {
-    this.pti = new PingTagSettings();
-    FTLog("'--- [PingTagEnemiesImproved] >> modSettings loaded!!");
+  public final func RefreshSettings() -> Void {
+		this.settings = new PingTagSettings();
+    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::RefreshSettings()");
+	}
+
+  public static func Initialize(player: ref<PlayerPuppet>) -> Void {
+    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::Initialize()");
+    let pti: ref<PTagSS> = new PTagSS();
+    pti.player = player;
+    player.pti = pti;
+    
+    pti.RefreshSettings();
   }
 
-  private cb func OnInitialize() {
-    FTLog("'--- [PingTagEnemiesImproved] >> Game instance initialized, can access game systems");
-  }
-
-  private cb func OnUninitialize() {
-    FTLog("'--- [PingTagEnemiesImproved] >> Game is shutting down");
+  public final func Uninitialize() -> Void {
+    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::Uninitialize()");
+    this.player.pti = null;
+    this.player = null;
   }
 }
 
 
+// Injection
+@addField(PlayerPuppet)
+public let pti: ref<PTagSS>;
 
+@wrapMethod(PlayerPuppet)
+private final func PlayerAttachedCallback(playerPuppet: ref<GameObject>) -> Void {
+	wrappedMethod(playerPuppet);
+	if playerPuppet == this {
+		PTagSS.Initialize(this);
+	}
+}
 
+@wrapMethod(PlayerPuppet)
+private final func PlayerDetachedCallback(playerPuppet: ref<GameObject>) -> Void {
+	if playerPuppet == this && IsDefined(this.pti) {
+		this.pti.Uninitialize();
+	}
+	wrappedMethod(playerPuppet);
+}
+
+// Refresh settings hook
+@wrapMethod(PauseMenuBackgroundGameController)
+protected cb func OnUninitialize() -> Bool {
+	let player: ref<PlayerPuppet> = GetGameInstance().GetPlayerSystem().GetLocalPlayerControlledGameObject() as PlayerPuppet;
+	if IsDefined(player.pti) {
+		player.pti.RefreshSettings();
+	}
+	wrappedMethod();
+}

@@ -1,5 +1,6 @@
 module PingTagEnemiesImproved.Handlers.ModSettings
 
+
 public class PingTagSettings {
 
   // Whether mod is enabled?
@@ -10,30 +11,37 @@ public class PingTagSettings {
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Tag NPCs")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagNpcs: Bool = true;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Tag access points")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagAccessPoints: Bool = false;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Tag hackable computers")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagHackableComputers: Bool = false;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Tag turrets")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagTurrets: Bool = false;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Tag cameras")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagCameras: Bool = false;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Prevent tagging turned off cameras")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let preventTaggingInactiveCameras: Bool = true;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Remove tag when turning off a camera")
+  @runtimeProperty("ModSettings.dependency", "enabled")
   public let ungtagTurnedOffCameras: Bool = true;
 
   public func Listen() {
