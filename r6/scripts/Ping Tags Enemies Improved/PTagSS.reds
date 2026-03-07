@@ -26,6 +26,13 @@ public class PTagSS extends ScriptableSystem {
     this.player.pti = null;
     this.player = null;
   }
+
+  public static func GetSettings() -> ref<PingTagSettings> {
+    let playerSystem = GameInstance.GetPlayerSystem(GetGameInstance());
+    let player = playerSystem.GetPlayer();
+    // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> pti.settings: \(player.pti.settings)");
+    return player.pti.settings;
+  }
 }
 
 

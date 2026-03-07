@@ -1,4 +1,4 @@
-module PingTagEnemiesImproved.Controllers.NPCPuppet
+module PingTagEnemiesImproved.Controllers.NPCPuppetController
 
 import PingTagEnemiesImproved.*
 import PingTagEnemiesImproved.Handlers.ModSettings.*
@@ -11,19 +11,11 @@ import PingTagEnemiesImproved.Handlers.ModSettings.*
   // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.Name:  \(this.GetDisplayName()) - \(this.GetDisplayDescription())");
   // FTLog(s"'---------~ [PingTagEnemiesImproved] [DEBUG] >> NPCPuppet.IsDead:  \(this.IsDead())");
 
-
-public func GetSettings() -> ref<PingTagSettings> {
-  let playerSystem = GameInstance.GetPlayerSystem(GetGameInstance()); 
-  let player = playerSystem.GetPlayer();
-  // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> pti.settings: \(player.pti.settings)");
-  return player.pti.settings;
-}
-
 @wrapMethod(NPCPuppet)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
   let state = wrappedMethod(evt);
-  
-  let settings = GetSettings();
+  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
+
   if !settings.enabled { return state; }
   if !settings.tagNpcs { return state; }
 

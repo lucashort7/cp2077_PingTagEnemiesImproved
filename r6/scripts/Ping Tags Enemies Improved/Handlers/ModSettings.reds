@@ -35,6 +35,11 @@ public class PingTagSettings {
   public let tagCameras: Bool = false;
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
+  @runtimeProperty("ModSettings.displayName", "Tag hackable sensors")
+  @runtimeProperty("ModSettings.dependency", "enabled")
+  public let tagSensors: Bool = false;
+
+  @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Prevent tagging turned off cameras")
   @runtimeProperty("ModSettings.dependency", "enabled")
   public let preventTaggingInactiveCameras: Bool = true;
