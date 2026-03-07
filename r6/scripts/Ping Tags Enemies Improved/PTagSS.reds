@@ -1,19 +1,15 @@
 module PingTagEnemiesImproved
 
-import PingTagEnemiesImproved.Handlers.ModSettings.{PingTagSettings}
+import PingTagEnemiesImproved.Handlers.ModSettings.*
+import PingTagEnemiesImproved.Utils.Logging.*
 
 
 public class PTagSS extends ScriptableSystem {
   public let settings: ref<PingTagSettings>;
   public let player: ref<PlayerPuppet>;
 
-  public final func RefreshSettings() -> Void {
-		this.settings = new PingTagSettings();
-    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::RefreshSettings()");
-	}
-
   public static func Initialize(player: ref<PlayerPuppet>) -> Void {
-    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::Initialize()");
+    FTLogDebug("PTagSS::Initialize()");
     let pti: ref<PTagSS> = new PTagSS();
     pti.player = player;
     player.pti = pti;
@@ -22,10 +18,15 @@ public class PTagSS extends ScriptableSystem {
   }
 
   public final func Uninitialize() -> Void {
-    FTLog("'--- [PingTagEnemiesImproved] >> [DEBUG] PTagSS::Uninitialize()");
+    FTLogDebug("PTagSS::Uninitialize()");
     this.player.pti = null;
     this.player = null;
   }
+
+  public final func RefreshSettings() -> Void {
+		this.settings = new PingTagSettings();
+    FTLogDebug("PTagSS::RefreshSettings()");
+	}
 
   public static func GetSettings() -> ref<PingTagSettings> {
     let playerSystem = GameInstance.GetPlayerSystem(GetGameInstance());

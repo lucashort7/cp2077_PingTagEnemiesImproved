@@ -1,132 +1,23 @@
 
-// import PingTagEnemiesImproved.*
+module PingTagEnemiesImproved.Controllers._PingTagController
+
+import PingTagEnemiesImproved.Utils.Logging.*
 
 
-// @wrapMethod(ScanningComponent)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
-//   FTLog(
-//     "\'------------------- [PingTagEnemiesImproved] [DEBUG] >> ScanningComponent::OnRevealStateChanged() Triggered!"
-//   );
-//   return wrappedMethod(evt);
+public func _DebugOnRevealStateChanged(ctx: String, dvc: ref<GameObject>, evt: ref<RevealStateChangedEvent>) -> Void {
+  FTLog("\n=================================================");
+  FTLogDebug(ctx);
+  FTLogDebug(s"evt:  \(evt.state); \(evt.reason.sourceEntityId); \(evt.reason.reason)");
+  FTLogDebug(s"device:  \(dvc.GetPersistentID()); \(dvc.GetClassName());");
+  FTLog("=================================================\n");
+}
 
-//   // let state = wrappedMethod(evt);
-//   // let owner: ref<GameObject> = this.GetOwner();
-
-//   // // We only want to tag at the start of the ping
-//   // if !Equals(evt.state, ERevealState.STARTED) {
-//   //   return state;
-//   // }
-//   // // If the target is already tagged then there's nothing to do
-//   // if owner.IsTaggedinFocusMode() {
-//   //   return state;
-//   // }
-//   // // Wthout this check we will end up tagging people highlighted by optics cyberware
-//   // if !(Equals(evt.reason.reason, n"network") || Equals(evt.reason.reason, n"PingQuickhack")) {
-//   //   return state;
-//   // }
-
-//   // // let settings = new PingTagSettings();
-//   // let svc = GameInstance
-//   //   .GetScriptableServiceContainer()
-//   //   .GetService(n"PingTagEnemiesImproved.PingTagService") as PingTagService;    // TODO: check this approach: let pti = PingTagSettings.GetInstance();                                      
-
-//   // // Skip if target is a camera that is turned off
-//   // if svc.pti.preventTaggingInactiveCameras {
-//   //   let sensorDevice: ref<SensorDevice> = owner as SensorDevice;
-//   //   let devicePS = sensorDevice.GetDevicePS();
-//   //   if IsDefined(sensorDevice) && !devicePS.IsON() {
-//   //     return state;
-//   //   }
-//   // }
-
-//   // if owner.IsNPC() {
-//   //   if !svc.pti.tagNpcs {
-//   //     return state;
-//   //   }
-//   // } else if owner.IsAccessPoint() {
-//   //   if !svc.pti.tagAccessPoints {
-//   //     return state;
-//   //   }
-//   // } else if owner.IsSensor() {
-//   //   if !svc.pti.tagCameras {
-//   //     return state;
-//   //   }
-//   // } else if owner.IsTurret() {
-//   //   if !svc.pti.tagTurrets {
-//   //     return state;
-//   //   }
-//   // } else {
-//   //   // Some computers function as hackable access points - we have to handle them
-//   //   // separately from regular access points
-//   //   if !svc.pti.tagHackableComputers {
-//   //     return state;
-//   //   }
-
-//   //   let deviceBase: ref<DeviceBase> = owner as DeviceBase;
-//   //   if !IsDefined(deviceBase) || !deviceBase.IsActiveBackdoor() {
-//   //     return state;
-//   //   }
-//   // }
-
-//   // GameObject.TagObject(owner);
-
-//   // return state;
-// }
-
-// @wrapMethod(SensorDevice)
-// protected func TurnOffDevice() -> Void {
-//   FTLog(
-//     "\'------------------- [PingTagEnemiesImproved] [DEBUG] >> TurnOffDevice() Triggered!"
-//   );
-
-//   wrappedMethod();
-
-//   // let svc = GameInstance
-//   //   .GetScriptableServiceContainer()
-//   //   .GetService(n"PingTagEnemiesImproved.PingTagService") as PingTagService;
-
-//   // if svc.pti.ungtagTurnedOffCameras {
-//   //   GameObject.UntagObject(this);
-//   // }
-// }
-
-// @wrapMethod(SensorDevice)
-// protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
-//   FTLog(
-//     "\'------------------- [PingTagEnemiesImproved] [DEBUG] >> OnDeath() Triggered!"
-//   );
-//   wrappedMethod(evt);
-
-//   // let svc = GameInstance
-//   //   .GetScriptableServiceContainer()
-//   //   .GetService(n"PingTagEnemiesImproved.PingTagService") as PingTagService;
-
-//   // if svc.pti.ungtagTurnedOffCameras {
-//   //   GameObject.UntagObject(this);
-//   // }
-// }
-
-
-// // TESTING!!!!!!
-// @wrapMethod(SharedGameplayPS)
-// public const func SetRevealedInNetworkPing(wasRevealed: Bool) -> Void {
-//   wrappedMethod(wasRevealed);
-//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> SharedGameplayPS::SetRevealedInNetworkPing() Triggered!!!");
-//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> psID: \(this.GetID())");
-//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> clsName: \(this.GetClassName())");
-// }
-
-
-// @wrapMethod(ScriptableDeviceComponentPS)
-// private func PingSquad() -> Void {
-//   wrappedMethod();
-//   FTLog(s"'---------~ [PTagImpv] [DEBUG] >> ScriptableDeviceComponentPS::PingSquad() Triggered!!!");
-//   let evt: ref<ForwardPingToSquadEvent>;
-//   let aps: array<ref<AccessPointControllerPS>> = this.GetAccessPoints();
-//   let i: Int32 = 0;
-//   while i < ArraySize(aps) {
-//     evt = new ForwardPingToSquadEvent();
-//     FTLog(s"'---------~ [PTagImpv] [DEBUG] >> ap[\(i)]: \(aps[i]); evt: \(evt)");
-//     i += 1;
-//   };
-// }
+public func IsValidRevealStateChangedEvent(evt: ref<RevealStateChangedEvent>) -> Bool{
+  if !Equals(evt.state, ERevealState.STARTED) { 
+    return false; 
+  }
+  if !(Equals(evt.reason.reason, n"network") || Equals(evt.reason.reason, n"PingQuickhack")) {
+    return false;
+  }
+  return true;
+}
