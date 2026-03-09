@@ -82,3 +82,7 @@ protected cb func OnUninitialize() -> Bool {
 	}
 	wrappedMethod();
 }
+
+
+// TODO: untag all 
+// GameInstance.GetVisionModeSystem(this.GetGameInstance()).GetScanningController().UntagAll();

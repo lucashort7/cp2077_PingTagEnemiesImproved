@@ -25,9 +25,9 @@ public func IsValidRevealStateChangedEvent(evt: ref<RevealStateChangedEvent>) ->
 }
 
 
-// -------------------------
-// NPC PUPPET
-// -------------------------
+// -----------------
+// [[ NPC PUPPET ]]
+// -----------------
 // TODO: explosive is considered NPCPuppet
 @wrapMethod(NPCPuppet)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
@@ -55,16 +55,18 @@ protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   return state;
 }
 
-// -------------------------
-// INTERACTIVE MASTER DEVICE
-// -------------------------
+
+// -----------------
+// [[ INTERACTIVE MASTER DEVICE ]]
+// -----------------
+// TODO: this.IsBreached -> UntagObject
 @addMethod(AccessPoint)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
 
   // _DebugOnRevealStateChanged("AccessPoint::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; }
-  if !IsValidRevealStateChangedEvent(evt) { return; }
+  if this.IsTaggedinFocusMode() { return; };
+  if !IsValidRevealStateChangedEvent(evt) { return; };
   
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
   if settings.enabled && settings.tagAccessPoints { 
@@ -72,13 +74,14 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   }
 }
 
+// TODO: this.IsDestroyed -> UntagObject
 @addMethod(SecurityAlarm)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
   
   // _DebugOnRevealStateChanged("SecurityAlarm::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; }
-  if !IsValidRevealStateChangedEvent(evt) { return; }
+  if this.IsTaggedinFocusMode() { return; };
+  if !IsValidRevealStateChangedEvent(evt) { return; };
 
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
   if settings.enabled && settings.tagAlarms { 
@@ -86,16 +89,18 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   }
 }
 
-// -------------------------
-// SENSOR DEVICE
-// -------------------------
+
+// -----------------
+// [[ SENSOR DEVICE ]]
+// -----------------
 @addMethod(SurveillanceCamera)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
   
   // _DebugOnRevealStateChanged("SurveillanceCamera::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; }
-  if !IsValidRevealStateChangedEvent(evt) { return; }
+  if this.GetDevicePS().IsControlledByPlayer() { return; };
+  if this.IsTaggedinFocusMode() { return; };
+  if !IsValidRevealStateChangedEvent(evt) { return; };
 
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
   if settings.enabled && settings.tagCameras { 
@@ -108,13 +113,27 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
 
   // _DebugOnRevealStateChanged("SecurityTurret::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; }
-  if !IsValidRevealStateChangedEvent(evt) { return; }
+  if this.GetDevicePS().IsControlledByPlayer() { return; };
+  if this.IsTaggedinFocusMode() { return; };
+  if !IsValidRevealStateChangedEvent(evt) { return; };
 
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
   if settings.enabled && settings.tagTurrets { 
     GameObject.TagObject(this);
   }
+}
+
+@wrapMethod(SensorDevice)
+protected func TurnOffDevice() -> Void {
+  wrappedMethod();
+  GameObject.UntagObject(this);
+}
+
+@wrapMethod(SensorDevice)
+protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
+  let state = wrappedMethod(evt);
+  GameObject.UntagObject(this);
+  return state;
 }
 
 // @wrapMethod(SensorDevice)
