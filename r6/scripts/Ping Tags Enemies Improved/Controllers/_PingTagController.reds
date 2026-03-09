@@ -28,11 +28,10 @@ public func IsValidRevealStateChangedEvent(evt: ref<RevealStateChangedEvent>) ->
 // -----------------
 // [[ NPC PUPPET ]]
 // -----------------
-// TODO: explosive is considered NPCPuppet
 @wrapMethod(NPCPuppet)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
   let state = wrappedMethod(evt);
-
+  
   if this.IsTaggedinFocusMode() { return state; }
   if !IsValidRevealStateChangedEvent(evt) { return state; }
 

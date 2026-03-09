@@ -25,7 +25,7 @@ public class PTagSS extends ScriptableSystem {
   public let player: ref<PlayerPuppet>;
 
   public static func Initialize(player: ref<PlayerPuppet>) -> Void {
-    FTLogDebug("PTagSS::Initialize()");
+    // FTLogDebug("PTagSS::Initialize()");
     let pti: ref<PTagSS> = new PTagSS();
     pti.player = player;
     player.pti = pti;
@@ -34,14 +34,14 @@ public class PTagSS extends ScriptableSystem {
   }
 
   public final func Uninitialize() -> Void {
-    FTLogDebug("PTagSS::Uninitialize()");
+    // FTLogDebug("PTagSS::Uninitialize()");
     this.player.pti = null;
     this.player = null;
   }
 
   public final func RefreshSettings() -> Void {
 		this.settings = new PingTagSettings();
-    FTLogDebug("PTagSS::RefreshSettings()");
+    // FTLogDebug("PTagSS::RefreshSettings()");
 	}
 
   public static func GetSettings() -> ref<PingTagSettings> {
