@@ -24,21 +24,24 @@ public func IsValidRevealStateChangedEvent(evt: ref<RevealStateChangedEvent>) ->
   return true;
 }
 
+
+// -------------------------
+// NPC PUPPET
+// -------------------------
 // TODO: explosive is considered NPCPuppet
 @wrapMethod(NPCPuppet)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
   let state = wrappedMethod(evt);
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if !settings.enabled && !settings.tagNpcs { 
-    FTLogDebug(s"Settings disabled for [NPCPuppet]");
-    return state; 
-  }
 
-  if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() { 
+  if this.IsTaggedinFocusMode() { return state; }
+  if !IsValidRevealStateChangedEvent(evt) { return state; }
+
+  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
+  if settings.enabled && settings.tagNpcs { 
     GameObject.TagObject(this);
     // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> \(this.GetPersistentID()) was tagged!");
-  };
-  
+  }
+
   return state;
 }
 
@@ -52,19 +55,19 @@ protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   return state;
 }
 
+// -------------------------
+// INTERACTIVE MASTER DEVICE
+// -------------------------
 @addMethod(AccessPoint)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
+
+  // _DebugOnRevealStateChanged("AccessPoint::OnRevealStateChanged()", this, evt);
+  if this.IsTaggedinFocusMode() { return; }
+  if !IsValidRevealStateChangedEvent(evt) { return; }
   
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if !settings.enabled && !settings.tagAccessPoints { 
-    FTLogDebug(s"Settings disabled for [AccessPoint]");
-    return; 
-  }
-
-  _DebugOnRevealStateChanged("AccessPoint::OnRevealStateChanged()", this, evt);
-  
-  if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() {
+  if settings.enabled && settings.tagAccessPoints { 
     GameObject.TagObject(this);
   }
 }
@@ -73,32 +76,29 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
   
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if !settings.enabled && !settings.tagAlarms { 
-    FTLogDebug(s"Settings disabled for [SecurityAlarm]");
-    return; 
-  }
+  // _DebugOnRevealStateChanged("SecurityAlarm::OnRevealStateChanged()", this, evt);
+  if this.IsTaggedinFocusMode() { return; }
+  if !IsValidRevealStateChangedEvent(evt) { return; }
 
-  _DebugOnRevealStateChanged("SecurityAlarm::OnRevealStateChanged()", this, evt);
-  
-  if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() {
+  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
+  if settings.enabled && settings.tagAlarms { 
     GameObject.TagObject(this);
   }
 }
 
+// -------------------------
+// SENSOR DEVICE
+// -------------------------
 @addMethod(SurveillanceCamera)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
   
+  // _DebugOnRevealStateChanged("SurveillanceCamera::OnRevealStateChanged()", this, evt);
+  if this.IsTaggedinFocusMode() { return; }
+  if !IsValidRevealStateChangedEvent(evt) { return; }
+
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if !settings.enabled && !settings.tagCameras { 
-    FTLogDebug(s"Settings disabled for [SensorDevice::SurveillanceCamera]");
-    return; 
-  }
-
-  _DebugOnRevealStateChanged("SurveillanceCamera::OnRevealStateChanged()", this, evt);
-
-  if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() {
+  if settings.enabled && settings.tagCameras { 
     GameObject.TagObject(this);
   }
 }
@@ -107,15 +107,12 @@ protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
   super.OnRevealStateChanged(evt);
 
+  // _DebugOnRevealStateChanged("SecurityTurret::OnRevealStateChanged()", this, evt);
+  if this.IsTaggedinFocusMode() { return; }
+  if !IsValidRevealStateChangedEvent(evt) { return; }
+
   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if !settings.enabled && !settings.tagTurrets { 
-    FTLogDebug(s"Settings disabled for [SensorDevice::SecurityTurret]");
-    return; 
-  }
-
-  _DebugOnRevealStateChanged("SecurityTurret::OnRevealStateChanged()", this, evt);
-
-  if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() {
+  if settings.enabled && settings.tagTurrets { 
     GameObject.TagObject(this);
   }
 }

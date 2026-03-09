@@ -3,7 +3,6 @@ module PingTagEnemiesImproved.Handlers.ModSettings
 
 public class PingTagSettings {
 
-  // Whether mod is enabled?
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Enable")
   @runtimeProperty("ModSettings.description", "Whether this mod is enabled?")
@@ -38,12 +37,6 @@ public class PingTagSettings {
   @runtimeProperty("ModSettings.displayName", "Tag Access Points")
   @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagAccessPoints: Bool = false;
-
-  @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
-  @runtimeProperty("ModSettings.category", "Root Type")
-  @runtimeProperty("ModSettings.displayName", "Tag hackable computers")
-  @runtimeProperty("ModSettings.dependency", "enabled")
-  public let tagHackableComputers: Bool = false;
 
 }
 
