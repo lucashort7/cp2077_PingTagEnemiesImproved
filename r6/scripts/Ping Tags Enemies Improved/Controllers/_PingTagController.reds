@@ -135,6 +135,13 @@ protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   return state;
 }
 
+@wrapMethod(SensorDevice)
+protected cb func OnAttitudeChanged(evt: ref<AttitudeChangedEvent>) -> Bool {
+  let state = wrappedMethod(evt);
+  GameObject.UntagObject(this);
+  return state;
+}
+
 // @wrapMethod(SensorDevice)
 // protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
 //   let state = wrappedMethod(evt);

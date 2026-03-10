@@ -24,6 +24,14 @@ public class PTagSS extends ScriptableSystem {
   public let settings: ref<PingTagSettings>;
   public let player: ref<PlayerPuppet>;
 
+  public func OnAttach() { 
+    FTLogDebug("PTagSS::OnAttach()");
+    GameInstance.GetCallbackSystem().RegisterCallback(n"Input/Key", this, n"OnKeyInput")
+      .AddTarget(InputTarget.Key(EInputKey.IK_PageUp, EInputAction.IACT_Press))
+      .AddTarget(InputTarget.Key(EInputKey.IK_PageDown, EInputAction.IACT_Press))
+      .SetLifetime(CallbackLifetime.Session);
+  }
+
   public static func Initialize(player: ref<PlayerPuppet>) -> Void {
     // FTLogDebug("PTagSS::Initialize()");
     let pti: ref<PTagSS> = new PTagSS();
@@ -41,14 +49,37 @@ public class PTagSS extends ScriptableSystem {
 
   public final func RefreshSettings() -> Void {
 		this.settings = new PingTagSettings();
-    // FTLogDebug("PTagSS::RefreshSettings()");
+    // FTLogDebug(s"PTagSS::RefreshSettings() -> \(this.settings)");
 	}
 
   public static func GetSettings() -> ref<PingTagSettings> {
-    let playerSystem = GameInstance.GetPlayerSystem(GetGameInstance());
-    let player = playerSystem.GetPlayer();
-    // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> pti.settings: \(player.pti.settings)");
+    let playerSystem: ref<PlayerSystem> = GameInstance.GetPlayerSystem(GetGameInstance());
+    let player: ref<PlayerPuppet> = playerSystem.GetPlayer();
     return player.pti.settings;
+  }
+
+  private cb func OnKeyInput(evt: ref<KeyInputEvent>) {
+    // FTLogDebug(s"PTagSS::OnKeyInput() -> Pressed \(evt.GetKey())");
+    if Equals(evt.GetKey(), EInputKey.IK_PageUp) {
+      PTagSS.UntagAll();
+    }
+    if Equals(evt.GetKey(), EInputKey.IK_PageDown) {
+      PTagSS.GetTaggedObjectsList();
+    }
+  }
+
+  public static func UntagAll() -> Void {
+    let sSysContainer: ref<ScriptableSystemsContainer> = GameInstance.GetScriptableSystemsContainer(GetGameInstance());
+    let focusTagSystem: ref<FocusModeTaggingSystem> = sSysContainer.Get(n"FocusModeTaggingSystem") as FocusModeTaggingSystem;
+    focusTagSystem.UntagAll();
+    FTLogDebug("PTagSS::UntagAll()");
+  }
+
+  public static func GetTaggedObjectsList() -> Void {
+    let sSysContainer: ref<ScriptableSystemsContainer> = GameInstance.GetScriptableSystemsContainer(GetGameInstance());
+    let focusTagSystem: ref<FocusModeTaggingSystem> = sSysContainer.Get(n"FocusModeTaggingSystem") as FocusModeTaggingSystem;
+    let taggedObjs: array<wref<GameObject>> = focusTagSystem.GetTaggedObjectsList();
+    FTLogDebug(s"PTagSS::GetTaggedObjectsList() -> \(taggedObjs)");
   }
 }
 
@@ -82,7 +113,3 @@ protected cb func OnUninitialize() -> Bool {
 	}
 	wrappedMethod();
 }
-
-
-// TODO: untag all 
-// GameInstance.GetVisionModeSystem(this.GetGameInstance()).GetScanningController().UntagAll();

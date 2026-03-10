@@ -10,6 +10,7 @@ public class PingTagSettings {
 
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.category", "NPCPuppet Base")
+  @runtimeProperty("ModSettings.category.order", "1")
   @runtimeProperty("ModSettings.displayName", "Tag Enemies")
   @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagNpcs: Bool = true;
@@ -17,6 +18,7 @@ public class PingTagSettings {
   // SensorsDevice Base
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.category", "SensorsDevice Base")
+  @runtimeProperty("ModSettings.category.order", "2")
   @runtimeProperty("ModSettings.displayName", "Tag Surveillance Cameras")
   @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagCameras: Bool = false;
@@ -30,6 +32,7 @@ public class PingTagSettings {
   // InteractiveMasterDevice Base
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.category", "InteractiveMasterDevice Base")
+  @runtimeProperty("ModSettings.category.order", "3")
   @runtimeProperty("ModSettings.displayName", "Tag Security Alarms")
   @runtimeProperty("ModSettings.dependency", "enabled")
   public let tagAlarms: Bool = false;
