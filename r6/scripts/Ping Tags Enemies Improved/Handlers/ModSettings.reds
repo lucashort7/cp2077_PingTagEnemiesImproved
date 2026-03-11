@@ -3,6 +3,8 @@ module PingTagEnemiesImproved.Handlers.ModSettings
 
 public class PingTagSettings {
 
+  public let maxTaggableObjects: Int32 = 5;
+
   @runtimeProperty("ModSettings.mod", "Ping Tags Enemies Improved")
   @runtimeProperty("ModSettings.displayName", "Enable")
   @runtimeProperty("ModSettings.description", "Whether this mod is enabled?")

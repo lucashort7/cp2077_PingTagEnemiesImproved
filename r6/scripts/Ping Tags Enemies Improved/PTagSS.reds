@@ -17,6 +17,7 @@
 module PingTagEnemiesImproved
 
 import PingTagEnemiesImproved.Handlers.ModSettings.*
+import PingTagEnemiesImproved.Helpers.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 
@@ -32,13 +33,24 @@ public class PTagSS extends ScriptableSystem {
       .SetLifetime(CallbackLifetime.Session);
   }
 
+  private cb func OnKeyInput(evt: ref<KeyInputEvent>) {
+    // FTLogDebug(s"PTagSS::OnKeyInput() -> Pressed \(evt.GetKey())");
+    if Equals(evt.GetKey(), EInputKey.IK_PageUp) {
+      _FocusModeTaggingSystem.UntagAll();
+    }
+    if Equals(evt.GetKey(), EInputKey.IK_PageDown) {
+      let taggedObjs = _FocusModeTaggingSystem.GetTaggedObjectsList();
+      FTLogDebug(s"\(taggedObjs)");
+    }
+  }
+
   public static func Initialize(player: ref<PlayerPuppet>) -> Void {
     // FTLogDebug("PTagSS::Initialize()");
     let pti: ref<PTagSS> = new PTagSS();
     pti.player = player;
+
     player.pti = pti;
-    
-    pti.RefreshSettings();
+    player.pti.RefreshSettings();
   }
 
   public final func Uninitialize() -> Void {
@@ -52,64 +64,53 @@ public class PTagSS extends ScriptableSystem {
     // FTLogDebug(s"PTagSS::RefreshSettings() -> \(this.settings)");
 	}
 
-  public static func GetSettings() -> ref<PingTagSettings> {
-    let playerSystem: ref<PlayerSystem> = GameInstance.GetPlayerSystem(GetGameInstance());
-    let player: ref<PlayerPuppet> = playerSystem.GetPlayer();
-    return player.pti.settings;
+  public final func DelayedTagObjects() {
+    let delaySystem = GameInstance.GetDelaySystem(GetGameInstance());
+    let taggableObjects = this.player.taggableObjects;
+    let maxTaggableObjects = this.settings.maxTaggableObjects;
+    let delay: Float = 1.5;
+    let isAffectedByTimeDilation: Bool = false;
+
+    delaySystem.DelayCallback(
+      TagObjectsCallback.Create(taggableObjects, maxTaggableObjects), 
+      delay,
+      isAffectedByTimeDilation
+    );
   }
 
-  private cb func OnKeyInput(evt: ref<KeyInputEvent>) {
-    // FTLogDebug(s"PTagSS::OnKeyInput() -> Pressed \(evt.GetKey())");
-    if Equals(evt.GetKey(), EInputKey.IK_PageUp) {
-      PTagSS.UntagAll();
+  public static func ResetTaggableObjs() {
+    FTLogDebug(s"PTagSS::ResetTaggableObjs()");
+    let player = _PlayerSystem.GetPlayerPuppet();
+    ArrayClear(player.taggableObjects);
+    player.IsNewObjsLocked = false;
+  }
+}
+
+
+public class TagObjectsCallback extends DelayCallback {
+  private let taggableObjects: array<wref<GameObject>>;
+  private let maxTaggableObjects: Int32;
+
+  public func Call() {
+    FTLogDebug(s"TagObjectsCallback::Call()");
+    let i: Int32 = ArraySize(this.taggableObjects) - 1;
+    let t: Int32 = 1;
+    while (i >= 0 && t <= this.maxTaggableObjects) {
+      let obj = this.taggableObjects[i];
+      if IsDefined(obj) {
+        GameObject.TagObject(obj);
+      }
+      i -= 1;
     }
-    if Equals(evt.GetKey(), EInputKey.IK_PageDown) {
-      PTagSS.GetTaggedObjectsList();
-    }
+    FTLogDebug(s"ALL OBJS WERE TAGGED!");
+    PTagSS.ResetTaggableObjs();
   }
 
-  public static func UntagAll() -> Void {
-    let sSysContainer: ref<ScriptableSystemsContainer> = GameInstance.GetScriptableSystemsContainer(GetGameInstance());
-    let focusTagSystem: ref<FocusModeTaggingSystem> = sSysContainer.Get(n"FocusModeTaggingSystem") as FocusModeTaggingSystem;
-    focusTagSystem.UntagAll();
-    FTLogDebug("PTagSS::UntagAll()");
+  public static func Create(taggableObjects: array<wref<GameObject>>, maxTaggableObjects: Int32) -> ref<TagObjectsCallback> {
+    // use this way to create your Callback class in one line
+    let self = new TagObjectsCallback();
+    self.taggableObjects = taggableObjects;
+    self.maxTaggableObjects = maxTaggableObjects;
+    return self;
   }
-
-  public static func GetTaggedObjectsList() -> Void {
-    let sSysContainer: ref<ScriptableSystemsContainer> = GameInstance.GetScriptableSystemsContainer(GetGameInstance());
-    let focusTagSystem: ref<FocusModeTaggingSystem> = sSysContainer.Get(n"FocusModeTaggingSystem") as FocusModeTaggingSystem;
-    let taggedObjs: array<wref<GameObject>> = focusTagSystem.GetTaggedObjectsList();
-    FTLogDebug(s"PTagSS::GetTaggedObjectsList() -> \(taggedObjs)");
-  }
-}
-
-
-// Injection
-@addField(PlayerPuppet)
-public let pti: ref<PTagSS>;
-
-@wrapMethod(PlayerPuppet)
-private final func PlayerAttachedCallback(playerPuppet: ref<GameObject>) -> Void {
-	wrappedMethod(playerPuppet);
-	if playerPuppet == this {
-		PTagSS.Initialize(this);
-	}
-}
-
-@wrapMethod(PlayerPuppet)
-private final func PlayerDetachedCallback(playerPuppet: ref<GameObject>) -> Void {
-	if playerPuppet == this && IsDefined(this.pti) {
-		this.pti.Uninitialize();
-	}
-	wrappedMethod(playerPuppet);
-}
-
-// Refresh settings hook
-@wrapMethod(PauseMenuBackgroundGameController)
-protected cb func OnUninitialize() -> Bool {
-	let player: ref<PlayerPuppet> = GetGameInstance().GetPlayerSystem().GetLocalPlayerControlledGameObject() as PlayerPuppet;
-	if IsDefined(player.pti) {
-		player.pti.RefreshSettings();
-	}
-	wrappedMethod();
 }
