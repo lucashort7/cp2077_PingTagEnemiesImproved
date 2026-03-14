@@ -1,166 +1,75 @@
 
-// module PingTagEnemiesImproved.Controllers._PingTagController
+module PingTagEnemiesImproved.Controllers
 
-// import PingTagEnemiesImproved.*
-// import PingTagEnemiesImproved.Handlers.ModSettings.*
-// import PingTagEnemiesImproved.Helpers.*
-// import PingTagEnemiesImproved.Utils.Logging.*
-
-
-// public func _DebugOnRevealStateChanged(ctx: String, dvc: ref<GameObject>, evt: ref<RevealStateChangedEvent>) -> Void {
-//   FTLog("\n=================================================");
-//   FTLogDebug(ctx);
-//   FTLogDebug(s"evt:  \(evt.state); \(evt.reason.sourceEntityId); \(evt.reason.reason)");
-//   FTLogDebug(s"device:  \(dvc.GetPersistentID()); \(dvc.GetClassName());");
-//   FTLog("=================================================\n");
-// }
+import PingTagEnemiesImproved.*
+import PingTagEnemiesImproved.Systems.*
+import PingTagEnemiesImproved.Utils.Logging.*
 
 
+public class TagObjectsCallback extends DelayCallback {
+  private let player: ref<PlayerPuppet>;
 
-// // -----------------
-// // [[ INTERACTIVE MASTER DEVICE ]]
-// // -----------------
-// // TODO: this.IsBreached -> UntagObject
-// @addMethod(AccessPoint)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-//   super.OnRevealStateChanged(evt);
+  public func Call() {
+    FTLogDebug(s"TagObjectsCallback::Call()");    
 
-//   // _DebugOnRevealStateChanged("AccessPoint::OnRevealStateChanged()", this, evt);
-//   if !IsValidRevealStateChangedEvent(evt, this.IsTaggedinFocusMode()) { 
-//     return; 
-//   }
-  
-//   let settings: ref<PingTagSettings> = _PlayerSystem.GetConfigSettings();
-//   if settings.enabled && settings.tagAccessPoints { 
-//     GameObject.TagObject(this);
-//   }
-// }
+    let markedForTagObjs = this.player.markedForTagObjs;
+    let maxNumOfTags = this.player.GetConfigShouldLimitTagEnemies() ? this.player.GetConfigMaxNumOfTags() : 999;
 
-// // TODO: this.IsDestroyed -> UntagObject
-// @addMethod(SecurityAlarm)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-//   super.OnRevealStateChanged(evt);
-  
-//   // _DebugOnRevealStateChanged("SecurityAlarm::OnRevealStateChanged()", this, evt);
-//   if !IsValidRevealStateChangedEvent(evt, this.IsTaggedinFocusMode()) { 
-//     return; 
-//   }
+    FTLogDebug(s"TagObjectsCallback::maxNumOfTags -> \(maxNumOfTags)");
+    FTLogDebug(s"TagObjectsCallback::markedForTagObjs.size -> \(ArraySize(markedForTagObjs))");
+    FTLogDebug(s"TagObjectsCallback::markedForTagObjs -> \(markedForTagObjs)");
+    
+    let i: Int32 = 0;
+    while (i < ArraySize(markedForTagObjs) && i < maxNumOfTags) {
+      let target = GameInstance.FindEntityByID(GetGameInstance(), markedForTagObjs[i]) as GameObject;
+      if IsDefined(target) {
+        FTLogDebug(s"target -> psID: \(target.GetPersistentID()); isTagged: \(target.IsTaggedinFocusMode())");
+        if !target.IsTaggedinFocusMode(){
+          GameObject.TagObject(target);
+          ArrayPush(this.player.lastTaggedObjs, markedForTagObjs[i]);
+        }
+      }
+      i += 1;
+    }
+    FTLogDebug(s"ALL OBJS WERE TAGGED!");
+    // PTagSS.ResetTaggableObjs();
+  }
 
-//   let settings: ref<PingTagSettings> = _PlayerSystem.GetConfigSettings();
-//   if settings.enabled && settings.tagAlarms { 
-//     GameObject.TagObject(this);
-//   }
-// }
-
-
-// // -----------------
-// // [[ SENSOR DEVICE ]]
-// // -----------------
-// @addMethod(SurveillanceCamera)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-//   super.OnRevealStateChanged(evt);
-  
-//   // _DebugOnRevealStateChanged("SurveillanceCamera::OnRevealStateChanged()", this, evt);
-//   if this.GetDevicePS().IsControlledByPlayer() { return; };
-//   if !IsValidRevealStateChangedEvent(evt, this.IsTaggedinFocusMode()) { 
-//     return; 
-//   }
-
-//   let settings: ref<PingTagSettings> = _PlayerSystem.GetConfigSettings();
-//   if settings.enabled && settings.tagCameras { 
-//     GameObject.TagObject(this);
-//   }
-// }
-
-// @addMethod(SecurityTurret)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-//   super.OnRevealStateChanged(evt);
-
-//   // _DebugOnRevealStateChanged("SecurityTurret::OnRevealStateChanged()", this, evt);
-//   if this.GetDevicePS().IsControlledByPlayer() { return; };
-//   if !IsValidRevealStateChangedEvent(evt, this.IsTaggedinFocusMode()) { 
-//     return; 
-//   }
-
-//   let settings: ref<PingTagSettings> = _PlayerSystem.GetConfigSettings();
-//   if settings.enabled && settings.tagTurrets { 
-//     GameObject.TagObject(this);
-//   }
-// }
-
-// @wrapMethod(SensorDevice)
-// protected func TurnOffDevice() -> Void {
-//   wrappedMethod();
-//   GameObject.UntagObject(this);
-// }
-
-// @wrapMethod(SensorDevice)
-// protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
-//   let state = wrappedMethod(evt);
-//   GameObject.UntagObject(this);
-//   return state;
-// }
-
-// @wrapMethod(SensorDevice)
-// protected cb func OnAttitudeChanged(evt: ref<AttitudeChangedEvent>) -> Bool {
-//   let state = wrappedMethod(evt);
-//   GameObject.UntagObject(this);
-//   return state;
-// }
+  public static func Create() -> ref<TagObjectsCallback> {
+    let self = new TagObjectsCallback();
+    self.player = _PlayerSystem.GetPlayerPuppet();
+    return self;
+  }
+}
 
 
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-// -----------------------------------------------------------
+@wrapMethod(DeviceLinkComponentPS)
+public const final func PingDevicesNetwork() -> Void {
+  FTLogDebug("DeviceLinkComponentPS::PingDevicesNetwork()!");
 
-// @wrapMethod(DeviceLinkComponentPS)
-// public const final func PingDevicesNetwork() -> Void {
-//   let networkSystem = _NetworkSystem.GetNetworkSystem();
-//   let player: ref<PlayerPuppet> = _PlayerSystem.GetPlayerSystem().GetPlayer();
-//   let m_lastPingSourceID = networkSystem.GetLastPingSourceID();
-//   networkSystem.
-//   FTLog("\n=================================================");
-//   FTLogDebug(s"player.pti.lastKnownPingSourceID: \(player.pti.lastKnownPingSourceID)");
-//   FTLogDebug(s"networkSystem.m_lastPingSourceID: \(m_lastPingSourceID)");
+  let player = _PlayerSystem.GetPlayerPuppet();
 
-//   if !EntityID.IsDefined(player.pti.lastKnownPingSourceID) || !Equals(player.pti.lastKnownPingSourceID, m_lastPingSourceID) {
-//     FTLogDebug("New lastPingSourceID!");
-//     player.pti.lastKnownPingSourceID = m_lastPingSourceID;
-//     player.pti.knownTaggedObjs = 0;
-//     // _FocusModeTaggingSystem.UntagAll();
-//   } else {
-//     FTLogDebug("Already known lastPingSourceID!");
-//   } 
-  
-//   wrappedMethod();
-// }
+  FTLogDebug(s"TagObjectsCallback::lastTaggedObjs -> \(player.lastTaggedObjs)");
+  let i = 0;
+  while (i < ArraySize(player.lastTaggedObjs)) {
+    let target = GameInstance.FindEntityByID(GetGameInstance(), player.lastTaggedObjs[i]) as GameObject;
+    GameObject.UntagObject(target);
+    i += 1;
+  }
+  FTLogDebug(s"TagObjectsCallback -> All objects UnTagged!");
 
+  player.markedForTagObjs = [];
+  player.lastTaggedObjs = [];
 
-// @wrapMethod(ScriptedPuppet)
-// protected func StartPingingNetwork() -> Void {
-//   let player: ref<PlayerPuppet> = _PlayerSystem.GetPlayerSystem().GetPlayer();
-//   player.pti.lastKnownPingSourceID = this.GetNetworkSystem().GetLastPingSourceID();
-//   player.pti.knownTaggedObjs = 0;
-//   _FocusModeTaggingSystem.UntagAll();
-//   FTLogDebug(s"\(this.GetPersistentID())");
-//   FTLogDebug(s"\(this.GetClassName())");
-//   FTLogDebug(s"\(this.GetPSClassName())");
+  wrappedMethod();
 
-//   wrappedMethod();
-// }
+  let delaySystem = GameInstance.GetDelaySystem(GetGameInstance());
+  let delay: Float = 1.5;
+  let isAffectedByTimeDilation: Bool = false;
 
-
-// @wrapMethod(PuppetDeviceLinkPS)
-// public final const func PingSquadNetwork() -> Void {
-//   FTLogDebug("PuppetDeviceLinkPS::PingSquadNetwork()");
-//   let player: ref<PlayerPuppet> = _PlayerSystem.GetPlayerSystem().GetPlayer();
-//   player.pti.lastKnownPingSourceID = this.GetNetworkSystem().GetLastPingSourceID();
-//   player.pti.knownTaggedObjs = 0;
-//   _FocusModeTaggingSystem.UntagAll();
-//   FTLogDebug(s"\(this.GetID())");
-//   FTLogDebug(s"\(this.GetClassName())");
-//   // FTLogDebug(s"\(this.GetPSClassName())");
-  
-// }
+  delaySystem.DelayCallback(
+    TagObjectsCallback.Create(), 
+    delay,
+    isAffectedByTimeDilation
+  );
+}

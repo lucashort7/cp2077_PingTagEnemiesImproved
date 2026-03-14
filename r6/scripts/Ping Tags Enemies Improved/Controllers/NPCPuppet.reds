@@ -4,23 +4,20 @@
 module PingTagEnemiesImproved.Controllers
 
 import PingTagEnemiesImproved.*
-import PingTagEnemiesImproved.Handlers.ModSettings.*
-import PingTagEnemiesImproved.Helpers.*
+import PingTagEnemiesImproved.Systems.*
+import PingTagEnemiesImproved.Utils.Config.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 
 @wrapMethod(NPCPuppet)
 protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
-  // this._ptag_debug();
-  // evt._ptag_debug();
-
   let state = wrappedMethod(evt);
 
-  if this.IsTaggedinFocusMode(){
+  if Equals(evt.state, ERevealState.STOPPED) { 
     return state;
   }
-  if !evt.IsValidEventForTagging() { 
-    return state; 
+  if !(Equals(evt.reason.reason, n"network") || Equals(evt.reason.reason, n"PingQuickhack")) {
+    return state;
   }
 
   let player: ref<PlayerPuppet> = _PlayerSystem.GetPlayerPuppet();

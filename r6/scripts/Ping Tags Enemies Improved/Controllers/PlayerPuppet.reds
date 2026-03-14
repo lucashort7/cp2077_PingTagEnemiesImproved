@@ -1,8 +1,8 @@
 module PingTagEnemiesImproved.Controllers
 
 import PingTagEnemiesImproved.*
-import PingTagEnemiesImproved.Handlers.ModSettings.*
-import PingTagEnemiesImproved.Helpers.*
+import PingTagEnemiesImproved.Systems.*
+import PingTagEnemiesImproved.Utils.Config.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 
@@ -11,68 +11,28 @@ import PingTagEnemiesImproved.Utils.Logging.*
 public let pti: ref<PTagSS>;
 
 @addField(PlayerPuppet)
-public let IsNewObjsLocked: Bool;
+public let markedForTagObjs: array<EntityID>;
 
 @addField(PlayerPuppet)
-public let taggableObjects: array<wref<GameObject>>;
+public let lastTaggedObjs: array<EntityID>;
 
 @addMethod(PlayerPuppet)
-protected final func GetConfigMaxTaggableObjects() -> Int32 { 
-  let player = _PlayerSystem.GetPlayerPuppet();
-  return player.pti.settings.maxTaggableObjects;
+public final func GetConfigShouldLimitTagEnemies() -> Bool { 
+  return this.pti.settings.shouldLimitNumOfTags;
 }
 
 @addMethod(PlayerPuppet)
-protected final func GetCurrentTaggableObjectsCount() -> Int32 {
-  return ArraySize(this.taggableObjects) + 1;
-}
-
-@addMethod(PlayerPuppet)
-protected final func HasAvailableTagSlots() -> Bool {
-  if this.GetCurrentTaggableObjectsCount() <=  this.GetConfigMaxTaggableObjects() {
-    return true;
-  }
-  return false;
+public final func GetConfigMaxNumOfTags() -> Int32 { 
+  return this.pti.settings.maxNumOfTags;
 }
 
 @addMethod(PlayerPuppet)
 public func AddObjectsToBeTagged(obj: ref<GameObject>) {
-	if this.IsNewObjsLocked { 
-		return; 
-	};
-	if !this.HasAvailableTagSlots() {
-		this.IsNewObjsLocked = true;
-		this.pti.DelayedTagObjects();
+	// FTLogDebug(s"PlayerPuppet::AddObjectsToBeTagged -> \(obj)");
+	if IsDefined(obj){
+    let psID = obj.GetEntityID();
+    if !ArrayContains(this.markedForTagObjs, psID) {
+      ArrayPush(this.markedForTagObjs, psID);
+    }
 	}
-	
-	if !ArrayContains(this.taggableObjects, obj) {
-		ArrayPush(this.taggableObjects, obj);
-	}
-}
-
-@wrapMethod(PlayerPuppet)
-private final func PlayerAttachedCallback(playerPuppet: ref<GameObject>) -> Void {
-	wrappedMethod(playerPuppet);
-	if playerPuppet == this {
-		PTagSS.Initialize(this);
-	}
-	this.IsNewObjsLocked = false;
-}
-
-@wrapMethod(PlayerPuppet)
-private final func PlayerDetachedCallback(playerPuppet: ref<GameObject>) -> Void {
-	if playerPuppet == this && IsDefined(this.pti) {
-		this.pti.Uninitialize();
-	}
-	wrappedMethod(playerPuppet);
-}
-
-// Refresh settings hook
-@wrapMethod(PauseMenuBackgroundGameController)
-protected cb func OnUninitialize() -> Bool {
-	let player: ref<PlayerPuppet> = _PlayerSystem.GetPlayerPuppet();
-	if IsDefined(player.pti) {
-		player.pti.RefreshSettings();
-	}
-	wrappedMethod();
 }

@@ -1,6 +1,6 @@
-module PingTagEnemiesImproved.Helpers
+module PingTagEnemiesImproved.Systems
 
-import PingTagEnemiesImproved.Handlers.ModSettings.*
+import PingTagEnemiesImproved.Utils.Config.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 
@@ -21,5 +21,11 @@ public class _FocusModeTaggingSystem {
     let focusTagSystem = _FocusModeTaggingSystem.GetFocusTagSystem();
     let taggedObjs: array<wref<GameObject>> = focusTagSystem.GetTaggedObjectsList();
     return taggedObjs;
+  }
+
+  public static func TagObject(obj: ref<GameObject>) -> Void {
+    let focusTagSystem = _FocusModeTaggingSystem.GetFocusTagSystem();
+    focusTagSystem.TagObject(obj);
+    FTLogDebug(s"_FocusModeTaggingSystem::TagObject() -> \(obj)");
   }
 }

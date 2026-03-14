@@ -1,7 +1,7 @@
-module PingTagEnemiesImproved.Helpers
+module PingTagEnemiesImproved.Systems
 
 import PingTagEnemiesImproved.*
-import PingTagEnemiesImproved.Handlers.ModSettings.*
+import PingTagEnemiesImproved.Utils.Config.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 public class _PlayerSystem {
