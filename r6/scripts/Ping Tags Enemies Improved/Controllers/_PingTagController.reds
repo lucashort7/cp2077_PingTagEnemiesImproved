@@ -1,162 +1,75 @@
 
-module PingTagEnemiesImproved.Controllers._PingTagController
+module PingTagEnemiesImproved.Controllers
 
 import PingTagEnemiesImproved.*
-import PingTagEnemiesImproved.Handlers.ModSettings.*
+import PingTagEnemiesImproved.Systems.*
 import PingTagEnemiesImproved.Utils.Logging.*
 
 
-public func _DebugOnRevealStateChanged(ctx: String, dvc: ref<GameObject>, evt: ref<RevealStateChangedEvent>) -> Void {
-  FTLog("\n=================================================");
-  FTLogDebug(ctx);
-  FTLogDebug(s"evt:  \(evt.state); \(evt.reason.sourceEntityId); \(evt.reason.reason)");
-  FTLogDebug(s"device:  \(dvc.GetPersistentID()); \(dvc.GetClassName());");
-  FTLog("=================================================\n");
-}
+public class TagObjectsCallback extends DelayCallback {
+  private let player: ref<PlayerPuppet>;
 
-public func IsValidRevealStateChangedEvent(evt: ref<RevealStateChangedEvent>) -> Bool {
-  if !Equals(evt.state, ERevealState.STARTED) { 
-    return false; 
-  }
-  if !(Equals(evt.reason.reason, n"network") || Equals(evt.reason.reason, n"PingQuickhack")) {
-    return false;
-  }
-  return true;
-}
+  public func Call() {
+    FTLogDebug(s"TagObjectsCallback::Call()");    
 
+    let markedForTagObjs = this.player.markedForTagObjs;
+    let maxNumOfTags = this.player.GetConfigShouldLimitTagEnemies() ? this.player.GetConfigMaxNumOfTags() : 999;
 
-// -----------------
-// [[ NPC PUPPET ]]
-// -----------------
-@wrapMethod(NPCPuppet)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
-  let state = wrappedMethod(evt);
-  
-  if this.IsTaggedinFocusMode() { return state; }
-  if !IsValidRevealStateChangedEvent(evt) { return state; }
-
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if settings.enabled && settings.tagNpcs { 
-    GameObject.TagObject(this);
-    // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> \(this.GetPersistentID()) was tagged!");
+    FTLogDebug(s"TagObjectsCallback::maxNumOfTags -> \(maxNumOfTags)");
+    FTLogDebug(s"TagObjectsCallback::markedForTagObjs.size -> \(ArraySize(markedForTagObjs))");
+    FTLogDebug(s"TagObjectsCallback::markedForTagObjs -> \(markedForTagObjs)");
+    
+    let i: Int32 = 0;
+    while (i < ArraySize(markedForTagObjs) && i < maxNumOfTags) {
+      let target = GameInstance.FindEntityByID(GetGameInstance(), markedForTagObjs[i]) as GameObject;
+      if IsDefined(target) {
+        FTLogDebug(s"target -> psID: \(target.GetPersistentID()); isTagged: \(target.IsTaggedinFocusMode())");
+        if !target.IsTaggedinFocusMode(){
+          GameObject.TagObject(target);
+          ArrayPush(this.player.lastTaggedObjs, markedForTagObjs[i]);
+        }
+      }
+      i += 1;
+    }
+    FTLogDebug(s"ALL OBJS WERE TAGGED!");
+    // PTagSS.ResetTaggableObjs();
   }
 
-  return state;
-}
-
-@wrapMethod(NPCPuppet)
-protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
-  let state = wrappedMethod(evt);
-
-  GameObject.UntagObject(this);
-  // FTLog(s"'---------~ [PTagImpv] [DEBUG] >> NPCPuppet::OnDeath() (\(this.GetPersistentID())) Tag cleared post death!!");
-  
-  return state;
-}
-
-
-// -----------------
-// [[ INTERACTIVE MASTER DEVICE ]]
-// -----------------
-// TODO: this.IsBreached -> UntagObject
-@addMethod(AccessPoint)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-  super.OnRevealStateChanged(evt);
-
-  // _DebugOnRevealStateChanged("AccessPoint::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; };
-  if !IsValidRevealStateChangedEvent(evt) { return; };
-  
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if settings.enabled && settings.tagAccessPoints { 
-    GameObject.TagObject(this);
-  }
-}
-
-// TODO: this.IsDestroyed -> UntagObject
-@addMethod(SecurityAlarm)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-  super.OnRevealStateChanged(evt);
-  
-  // _DebugOnRevealStateChanged("SecurityAlarm::OnRevealStateChanged()", this, evt);
-  if this.IsTaggedinFocusMode() { return; };
-  if !IsValidRevealStateChangedEvent(evt) { return; };
-
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if settings.enabled && settings.tagAlarms { 
-    GameObject.TagObject(this);
+  public static func Create() -> ref<TagObjectsCallback> {
+    let self = new TagObjectsCallback();
+    self.player = _PlayerSystem.GetPlayerPuppet();
+    return self;
   }
 }
 
 
-// -----------------
-// [[ SENSOR DEVICE ]]
-// -----------------
-@addMethod(SurveillanceCamera)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-  super.OnRevealStateChanged(evt);
-  
-  // _DebugOnRevealStateChanged("SurveillanceCamera::OnRevealStateChanged()", this, evt);
-  if this.GetDevicePS().IsControlledByPlayer() { return; };
-  if this.IsTaggedinFocusMode() { return; };
-  if !IsValidRevealStateChangedEvent(evt) { return; };
+@wrapMethod(DeviceLinkComponentPS)
+public const final func PingDevicesNetwork() -> Void {
+  FTLogDebug("DeviceLinkComponentPS::PingDevicesNetwork()!");
 
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if settings.enabled && settings.tagCameras { 
-    GameObject.TagObject(this);
+  let player = _PlayerSystem.GetPlayerPuppet();
+
+  FTLogDebug(s"TagObjectsCallback::lastTaggedObjs -> \(player.lastTaggedObjs)");
+  let i = 0;
+  while (i < ArraySize(player.lastTaggedObjs)) {
+    let target = GameInstance.FindEntityByID(GetGameInstance(), player.lastTaggedObjs[i]) as GameObject;
+    GameObject.UntagObject(target);
+    i += 1;
   }
-}
+  FTLogDebug(s"TagObjectsCallback -> All objects UnTagged!");
 
-@addMethod(SecurityTurret)
-protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) {
-  super.OnRevealStateChanged(evt);
+  player.markedForTagObjs = [];
+  player.lastTaggedObjs = [];
 
-  // _DebugOnRevealStateChanged("SecurityTurret::OnRevealStateChanged()", this, evt);
-  if this.GetDevicePS().IsControlledByPlayer() { return; };
-  if this.IsTaggedinFocusMode() { return; };
-  if !IsValidRevealStateChangedEvent(evt) { return; };
-
-  let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-  if settings.enabled && settings.tagTurrets { 
-    GameObject.TagObject(this);
-  }
-}
-
-@wrapMethod(SensorDevice)
-protected func TurnOffDevice() -> Void {
   wrappedMethod();
-  GameObject.UntagObject(this);
+
+  let delaySystem = GameInstance.GetDelaySystem(GetGameInstance());
+  let delay: Float = 1.5;
+  let isAffectedByTimeDilation: Bool = false;
+
+  delaySystem.DelayCallback(
+    TagObjectsCallback.Create(), 
+    delay,
+    isAffectedByTimeDilation
+  );
 }
-
-@wrapMethod(SensorDevice)
-protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
-  let state = wrappedMethod(evt);
-  GameObject.UntagObject(this);
-  return state;
-}
-
-// @wrapMethod(SensorDevice)
-// protected cb func OnRevealStateChanged(evt: ref<RevealStateChangedEvent>) -> Bool {
-//   let state = wrappedMethod(evt);
-
-//   _DebugOnRevealStateChanged("SensorDevice::OnRevealStateChanged()", this, evt);
-
-//   if this.IsSurveillanceCamera() || this.IsTurret() { 
-//     FTLogDebug(s"NOT ROOT SensorDevice! :: \(this.GetClassName())");
-//     return state; 
-//   }
-  
-//   let settings: ref<PingTagSettings> = PTagSS.GetSettings();
-//   if !settings.enabled && !settings.tagSensors { 
-//     FTLogDebug(s"Settings disabled for [SensorDevice::SecurityTurret]");
-//     return state; 
-//   }
-  
-//   if IsValidRevealStateChangedEvent(evt) && !this.IsTaggedinFocusMode() {
-//     GameObject.TagObject(this);
-//   }
-
-//   return state;
-// }
-
-// TODO: on friendly, disabled, destroy -> UNTAG
